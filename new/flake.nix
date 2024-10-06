@@ -28,45 +28,48 @@
     };
   };
 
-  outputs = {self,nixpkgs,home-manager,systems,...} @ inputs: let
-    inherit (self) outputs;
-    lib = nixpkgs.lib // home-manager.lib;
-    forEachSystem = f: lib.genAttrs (import systems) (system: f pkgsFor.${system});
-    pkgsFor = lib.genAttrs (import systems) (
-      system:
+  outputs = { self, nixpkgs, home-manager, systems, ... } @ inputs:
+    let
+      inherit (self) outputs;
+      lib = nixpkgs.lib // home-manager.lib;
+      forEachSystem = f: lib.genAttrs (import systems) (system: f pkgsFor.${system});
+      pkgsFor = lib.genAttrs (import systems) (
+        system:
         import nixpkgs {
           inherit system;
           config.allowUnfree = true;
         }
-    );
-  in {
-    inherit lib;
+      );
+    in
+    {
+      inherit lib;
 
-    devShells = forEachSystem (pkgs: import ./shell.nix {inherit pkgs;});
-    formatter = forEachSystem (pkgs: pkgs.alejandra);
+      packages = forEachSystem (pkgs: import ./pkgs { inherit pkgs; });
+      devShells = forEachSystem (pkgs: import ./shell.nix { inherit pkgs; });
+      formatter = forEachSystem (pkgs: pkgs.alejandra);
 
-    nixosConfigurations = {
-      castiel = lib.nixosSystem {
-        modules = [
-          ./hosts/castiel
-        ];
-        specialArgs = {
-          inherit inputs outputs;
+      nixosConfigurations = {
+        castiel = lib.nixosSystem {
+          modules = [
+            ./hosts/castiel
+          ];
+          specialArgs = {
+            inherit inputs outputs;
+          };
+        };
+      };
+
+      homeConfigurations = {
+        "adega@castiel" = lib.homeConfiguration {
+          modules = [
+            ./home/adega/castiel.nix
+            ./home/adega/nixpkgs.nix
+          ];
+          pkgs = pkgsFor.x86_64-linux;
+          extraSpecialArgs = {
+            inherit inputs outputs;
+          };
         };
       };
     };
-
-    homeConfigurations = {
-      "adega@castiel" = lib.homeConfiguration {
-        modules = [
-          ./home/adega/castiel.nix
-          ./home/adega/nixpkgs.nix
-        ];
-        pkgs = pkgsFor.x86_64-linux;
-        extraSpecialArgs = {
-          inherit inputs outputs;
-        };
-      };
-    };
-  };
 }

@@ -1,8 +1,12 @@
-{pkgs, config, lib, ...}: let 
-  ifTheyExist = groups: builtins.filter (
+{ pkgs, config, ... }:
+let
+  ifTheyExist = groups: builtins.filter
+    (
       group: builtins.hasAttr group config.users.groups
-    ) groups;
-in {
+    )
+    groups;
+in
+{
   users.users.adega = {
     isNormalUser = true;
     shell = pkgs.zsh;
@@ -14,8 +18,8 @@ in {
       "wheel"
     ];
 
-    packages = [pkgs.home-manager];
+    packages = [ pkgs.home-manager ];
   };
 
-  home-manager.users.adega = import ../../../../home/adega/${config.networking.hostName}.nix
+  home-manager.users.adega = import ../../../../home/adega/${config.networking.hostName}.nix;
 }

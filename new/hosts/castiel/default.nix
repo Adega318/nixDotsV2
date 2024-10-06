@@ -1,13 +1,22 @@
-{pkgs, inputs, ...}: let
+{ pkgs, ... }:
+let
   settings = {
     hostName = "castiel";
+    wallpaper = ../../wallpaper/a.png;
   };
-in {
+in
+{
   imports = [
     ./hardware-configuration.nix
 
     ../modules/core
     ../modules/users/adega
+    ../modules/optional/boot.nix
+    ../modules/optional/docker.nix
+    ../modules/optional/greetd.nix
+    ../modules/optional/networ.nix
+    ../modules/optional/pipewire.nix
+    ../modules/optional/stylix.nix
   ];
 
   networking.hostName = settings.hostName;
